@@ -1,7 +1,11 @@
 const express = require('express');
+const { GridFSBucket } = require('mongodb');
+const { GridFsStorage } = require('multer-gridfs-storage');
+const imagePath = process.env.IMAGE_PATH;
 const recordRoutes = express.Router();
 
 const dbo = require('../db/conn');
+const upload = require("./imageUpload");
 
 recordRoutes.route('/listings').get(async function (_req, res) {
   const dbConnect = dbo.getDb();
@@ -19,15 +23,18 @@ recordRoutes.route('/listings').get(async function (_req, res) {
     });
 });
 
-recordRoutes.route('/listings/recordSwipe').post(function (req, res) {
+recordRoutes.route('/list').post(function (req, res) {
   const dbConnect = dbo.getDb();
+  //console.log(req);
+  //console.log(res);
   const matchDocument = {
-    listing_id: req.body.id,
+    listing_id: req.body.data.id,
     last_modified: new Date(),
-    session_id: req.body.session_id,
-    direction: req.body.direction,
+    session_id: req.body.data.session_id,
+    direction: req.body.data.direction,
 
   };
+
   dbConnect
     .collection('matches')
     .insertOne(matchDocument, function (err, result) {
@@ -40,8 +47,64 @@ recordRoutes.route('/listings/recordSwipe').post(function (req, res) {
         res.json(value).status(200).send();
       }
     });
+  res.status(200).send();
 });
+recordRoutes.route('/upload').post(async function(req,res){
+  // try{
+   //console.log(req);
+      await upload(req,res)
+  //    const filename = req.file.filename;
+  //   if(req.file==undefined){
+  //     res.send({message:"upload an file",})
+  //   }
+  //   else{
+  //     let value = {...req,appended:"appended value to result"};
+  //     //console.log(req.file.filename);
+  //     res.status(200).send({message:"sucess"});
+  //   }
 
+  // }catch{
+  //   console.log("Error");
+  //   res.send({message:"Error"});
+  // }
+  //console.log(req)
+  res.status(200).send();
+});
+recordRoutes.route('/download').get(async function(req,res){
+  // res.send(200).send();
+  const dbConnect = dbo.getDbI();
+  const bucket = new GridFSBucket(dbConnect,{
+    bucketName:`${imagePath}`,
+  });
+  console.log(req.query);
+  let downloadStream = bucket.openDownloadStreamByName("10e6de5b083619cc553774501fbeb656");
+  downloadStream.on("data",function(data){
+    res.status(200).write(data);
+  });
+  downloadStream.on("error",function(err){
+    res.status(400).send();
+  });
+  downloadStream.on("end",()=>{
+    res.end();
+  })
+})
+
+recordRoutes.route("/get").get(async function(req,res){
+  console.log("get")
+  const dbConnect = dbo.getDbI();
+  const images = dbConnect.collection(`${imagePath}.files`);
+  const cursor = images.find({});
+  if(await cursor.count()==0){
+    res.status(500).send();
+  }
+  let fileInfos = [];
+  await cursor.forEach((doc)=>{
+    fileInfos.push({
+      name:doc.filename,
+    });
+  });
+  res.status(200).send(fileInfos);
+});
 recordRoutes.route('/listings/updateLike').post(function (req, res) {
   const dbConnect = dbo.getDb();
   const listingQuery = { _id: req.body.id };
@@ -70,7 +133,7 @@ recordRoutes.route("/favicon.ico").get((req,res)=>{
 
 recordRoutes.route('/listings/delete/').delete((req, res) => {
   const dbConnect = dbo.getDb();
-  console.log(req)
+  console.log(req.body.direction)
   const listingQuery = { direction: req.body.direction };
 
   dbConnect
