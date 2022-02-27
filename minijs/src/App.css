@@ -36,3 +36,14 @@
     transform: rotate(360deg);
   }
 }
+label[for="chk1"] {
+  display: inline-block;
+  text-align: center;
+  width: 500px;
+  height: 500px;
+  border: 2px solid black;
+  background: url(http://localhost:8000/sign.jpeg);
+}
+#chk1:checked ~ label[for="chk1"] {
+  background: url(http://localhost:8000/sign.jpeg);
+}

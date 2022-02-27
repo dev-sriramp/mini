@@ -7,8 +7,7 @@ var storage = new GridFsStorage({
     url:`${connectionString}/${imagePath}`,
     options:{useNewUrlParser:true,useUnifiedTopology:true},
     file:(req,file)=>{
-        
-        console.log(file)
+       
         const match = ["image/png","image/jpeg"];
         if(match.indexOf(file.mimetype)!=-1){
             return {
@@ -17,6 +16,8 @@ var storage = new GridFsStorage({
         }
     }
 });
-var uploadFiles = multer({storage:storage}).single("file");
+var uploadFiles = multer({storage:storage}).array("file",9);
+
+// var uploadFiles = multer({storage:storage}).single("file");
 var uploadFileMiddleWare = util.promisify(uploadFiles);
 module.exports = uploadFileMiddleWare;

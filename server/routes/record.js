@@ -23,84 +23,129 @@ recordRoutes.route('/listings').get(async function (_req, res) {
     });
 });
 
-recordRoutes.route('/list').post(function (req, res) {
+recordRoutes.route('/list').post(function async(req, res) {
   const dbConnect = dbo.getDb();
-  //console.log(req);
-  //console.log(res);
   const matchDocument = {
-    listing_id: req.body.data.id,
-    last_modified: new Date(),
-    session_id: req.body.data.session_id,
-    direction: req.body.data.direction,
-
+    email: req.body.email,
   };
 
-  dbConnect
-    .collection('matches')
-    .insertOne(matchDocument, function (err, result) {
-      if (err) {
-        res.status(400).send('Error inserting matches!');
-      } else {
-        console.log(`Added a new match with id ${result.insertedId}`);
-        console.log(result);
-      let value = {...result,appended:"appended value to result"};
-        res.json(value).status(200).send();
-      }
-    });
-  res.status(200).send();
-});
-recordRoutes.route('/upload').post(async function(req,res){
-  // try{
-   //console.log(req);
-      await upload(req,res)
-  //    const filename = req.file.filename;
-  //   if(req.file==undefined){
-  //     res.send({message:"upload an file",})
-  //   }
-  //   else{
-  //     let value = {...req,appended:"appended value to result"};
-  //     //console.log(req.file.filename);
-  //     res.status(200).send({message:"sucess"});
-  //   }
+  dbConnect.collection("users").find(matchDocument).toArray(function (err, result) {
+    if (result.length == 0) {
+      dbConnect
+        .collection('users')
+        .insertOne(matchDocument, function async(err, result) {
+          if (err) {
+            res.status(400).send('Error inserting matches!');
+          } else {
+            console.log(`Added a new match with id ${result.insertedId}`);
+            console.log(result);
+            res.json(result).status(200);
 
-  // }catch{
-  //   console.log("Error");
-  //   res.send({message:"Error"});
-  // }
-  //console.log(req)
-  res.status(200).send();
+          }
+        });
+    }
+    else {
+      res.status(409).send('Email already Exists');
+      //res.send(409);
+    }
+    //   console.log(result);
+
+    // res.json(result)
+
+  })
+  // dbConnect
+  //   .collection('users')
+  //   .insertOne(matchDocument, function async(err, result) {
+  //     if (err) {
+  //       res.status(400).send('Error inserting matches!');
+  //     } else {
+  //       console.log(`Added a new match with id ${result.insertedId}`);
+  //       console.log(result);
+  //     //let value = result;
+  //     console.log("First")
+  //         res.json(result).status(200);
+  //         console.log("First")
+  //     }
+  //   });
+  //res.status(200);
 });
-recordRoutes.route('/download').get(async function(req,res){
+recordRoutes.route('/upload').post(async function (req, res,file) {
+ //console.log(req);
+ 
+  await upload(req, res)
+  
+  console.log(req.files);
+   const obj = JSON.parse(JSON.stringify(req.body));
+   console.log(obj.email);
+  const dbConnect = dbo.getDb();
+  const email = {email:obj.email};
+  const images = {
+    $set:{
+      filename:req.files,
+    }
+    
+  };
+  dbConnect.collection("users").updateOne(email,images,function(err,result){
+    if(err){
+      res.status(400).send(`some error`);
+    }else{
+      console.log(`1 document updated`);
+      res.status(200).send();
+    }
+  })
+res.send()
+  
+});
+recordRoutes.route('/download').get(async function (req, res) {
   // res.send(200).send();
   const dbConnect = dbo.getDbI();
-  const bucket = new GridFSBucket(dbConnect,{
-    bucketName:`${imagePath}`,
+  const bucket = new GridFSBucket(dbConnect, {
+    bucketName: `${imagePath}`,
   });
   console.log(req.query);
-  let downloadStream = bucket.openDownloadStreamByName("10e6de5b083619cc553774501fbeb656");
-  downloadStream.on("data",function(data){
+  let downloadStream = bucket.openDownloadStreamByName("df20334323a9b1e68093cc01f8ae26a4");
+  downloadStream.on("data", function (data) {
     res.status(200).write(data);
   });
-  downloadStream.on("error",function(err){
+  downloadStream.on("error", function (err) {
     res.status(400).send();
   });
-  downloadStream.on("end",()=>{
+  downloadStream.on("end", () => {
     res.end();
   })
 })
 
-recordRoutes.route("/get").get(async function(req,res){
+recordRoutes.route("/checkemail").post(async function (req, res) {
+  const dbConnect = dbo.getDb();
+
+  //console.log(res);
+  const matchDocument = {
+    listing_id: req.body.email,
+  };
+  console.log(req.body.email);
+
+  dbConnect.collection("kjdf").insertOne(matchDocument, function (err, result) {
+    if (err) {
+      res.status(400).send('Error inserting matches!');
+    } else {
+      res.status(200).send();
+    }
+  });
+  res.status(200).send();
+});
+
+recordRoutes.route("/get").get(async function (req, res) {
   console.log("get")
   const dbConnect = dbo.getDbI();
   const images = dbConnect.collection(`${imagePath}.files`);
   const cursor = images.find({});
-  if(await cursor.count()==0){
+  if (await cursor.count() == 0) {
     res.status(500).send();
   }
   let fileInfos = [];
-  await cursor.forEach((doc)=>{
+  await cursor.forEach((doc) => {
     fileInfos.push({
-      name:doc.filename,
+      name: doc.filename,
     });
   });
   res.status(200).send(fileInfos);
@@ -127,7 +172,7 @@ recordRoutes.route('/listings/updateLike').post(function (req, res) {
     });
 });
 
-recordRoutes.route("/favicon.ico").get((req,res)=>{
+recordRoutes.route("/favicon.ico").get((req, res) => {
   res.status(200).send();
 })
 
@@ -146,7 +191,7 @@ recordRoutes.route('/listings/delete/').delete((req, res) => {
       } else {
         console.log('1 document deleted');
 
-        res.json({del:"deleted"}).status(200).send();
+        res.json({ del: "deleted" }).status(200).send();
       }
     });
 });

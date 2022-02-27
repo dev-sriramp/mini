@@ -15,7 +15,7 @@ module.exports = {
         return callback(err);
       }
 
-      dbConnection = db.db("sample");
+      dbConnection = db.db("users");
       console.log("Successfully connected to MongoDB.");
 
       return callback();
@@ -25,7 +25,7 @@ module.exports = {
   getDb: function () {
     return dbConnection;
   },
-  connectToServer: function (callback) {
+  connectToServerImage: function (callback) {
     client.connect(function (err, db) {
       if (err || !db) {
         return callback(err);
