@@ -6,7 +6,6 @@ const client = new MongoClient(connectionString, {
 });
 
 let dbConnection;
-let dbi;
 
 module.exports = {
   connectToServer: function (callback) {
@@ -24,20 +23,5 @@ module.exports = {
 
   getDb: function () {
     return dbConnection;
-  },
-  connectToServerImage: function (callback) {
-    client.connect(function (err, db) {
-      if (err || !db) {
-        return callback(err);
-      }
-      
-      dbi = db.db("images");
-      console.log("Successfully connected to MongoDB.");
-
-      return callback();
-    });
-  },
-  getDbI: function () {
-    return dbi;
   },
 };

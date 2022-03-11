@@ -3,7 +3,6 @@ const { GridFSBucket } = require('mongodb');
 const { GridFsStorage } = require('multer-gridfs-storage');
 const imagePath = process.env.IMAGE_PATH;
 const recordRoutes = express.Router();
-// const dbi = require('../db/imageConn');
 const dbo = require('../db/conn');
 
 const upload = require("./imageUpload");
@@ -25,7 +24,7 @@ recordRoutes.route('/listings').get(async function (_req, res) {
 });
 
 recordRoutes.route('/list').post(function async(req, res) {
-  const dbConnect = dbi.getDb();
+  const dbConnect = dbo.getDb();
   const matchDocument = {
     email: req.body.email,
   };
@@ -114,17 +113,13 @@ recordRoutes.route('/upload').post(async function (req, res, file) {
 
 });
 recordRoutes.route('/download').get(async function (req, res) {
-  // res.send(200).send();
-  const dbConnect = dbo.getDbI();
-  // console.log(dbConnect);
-  console.log("logged value");
-  console.log(`${imagePath}`);
+  const dbConnect = dbo.getDb();
   const bucket = new GridFSBucket(dbConnect, {
-    bucketName: `${imagePath}`,
+    bucketName: "images",
   });
-  console.log("logged value");
-  // console.log(req);
-  let downloadStream = bucket.openDownloadStreamByName("907fc6f83eeb6526d3bc9598ec4833b8");
+
+  console.log(req);
+  let downloadStream = bucket.openDownloadStreamByName(req.query.image);
   downloadStream.on("data", function (data) {
     res.status(200).write(data);
   });
@@ -138,7 +133,7 @@ recordRoutes.route('/download').get(async function (req, res) {
 })
 recordRoutes.route('/downloads').get(async function (req, res) {
   // res.send(200).send();
-  const dbConnect = dbi.getDb();
+  const dbConnect = dbo.getDb();
   console.log(dbConnect);
   console.log("logged value");
   console.log(`${imagePath}`);
@@ -147,7 +142,7 @@ recordRoutes.route('/downloads').get(async function (req, res) {
   });
   console.log("logged value");
   console.log(req);
-  let downloadStream = bucket.openDownloadStreamByName("907fc6f83eeb6526d3bc9598ec4833b8");
+  let downloadStream = bucket.openDownloadStreamByName("4f70d86bb98e5775ddf91c6959ef196f");
   downloadStream.on("data", function (data) {
     res.status(200).write(data);
   });
@@ -161,7 +156,7 @@ recordRoutes.route('/downloads').get(async function (req, res) {
 })
 
 recordRoutes.route("/checkemail").post(async function (req, res) {
-  const dbConnect = dbi.getDb();
+  const dbConnect = dbo.getDb();
 
   //console.log(res);
   const matchDocument = {
@@ -178,18 +173,18 @@ recordRoutes.route("/checkemail").post(async function (req, res) {
   });
   res.status(200).send();
 });
-recordRoutes.route("/getemail").post(async function (req, res) {
-  const dbConnect = dbi.getDb();
+recordRoutes.route("/getemail").get(async function (req, res) {
+  const dbConnect = dbo.getDb();
   const matchDocument = {
-    email: req.body.email
+    email: req.query.email,
   }
-  dbConnect.collection(`users`).findOne(matchDocument,function(err,result){
-    if(err){
-      res.status(404).send();
+  dbConnect.collection(`users`).findOne(matchDocument, function (err, result) {
+    if (err) {
+      res.status(404);
     }
-    else{
-      console.log(result.filename);
-      res.json(result.filename).status(200).send();
+    else {
+      //console.log(result.filename);
+      res.json(result.filename).status(200);
     }
   })
   // console.log(req);
@@ -198,7 +193,7 @@ recordRoutes.route("/getemail").post(async function (req, res) {
 
 recordRoutes.route("/get").get(async function (req, res) {
   console.log("get")
-  const dbConnect = dbi.getDb();
+  const dbConnect = dbo.getDb();
   const images = dbConnect.collection(`${imagePath}.files`);
   const cursor = images.find({});
   if (await cursor.count() == 0) {
@@ -213,7 +208,7 @@ recordRoutes.route("/get").get(async function (req, res) {
   res.status(200).send(fileInfos);
 });
 recordRoutes.route('/listings/updateLike').post(function (req, res) {
-  const dbConnect = dbi.getDb();
+  const dbConnect = dbo.getDb();
   const listingQuery = { _id: req.body.id };
   const updates = {
     $inc: {
@@ -239,7 +234,7 @@ recordRoutes.route("/favicon.ico").get((req, res) => {
 })
 
 recordRoutes.route('/listings/delete/').delete((req, res) => {
-  const dbConnect = dbi.getDb();
+  const dbConnect = dbo.getDb();
   console.log(req.body.direction)
   const listingQuery = { direction: req.body.direction };
 
