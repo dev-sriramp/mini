@@ -14,6 +14,11 @@ var storage = new GridFsStorage({
                 bucketName:`${imagePath}`,
             }
         }
+        else{
+            return{
+                bucketName:`${imagePath}`,
+            }
+        }
     }
 });
 var uploadFiles = multer({storage:storage}).array("file",9);

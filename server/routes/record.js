@@ -3,15 +3,16 @@ const { GridFSBucket } = require('mongodb');
 const { GridFsStorage } = require('multer-gridfs-storage');
 const imagePath = process.env.IMAGE_PATH;
 const recordRoutes = express.Router();
-
+// const dbi = require('../db/imageConn');
 const dbo = require('../db/conn');
+
 const upload = require("./imageUpload");
 
 recordRoutes.route('/listings').get(async function (_req, res) {
   const dbConnect = dbo.getDb();
 
   dbConnect
-    .collection('matches')
+    .collection('users')
     .find({})
     .limit(50)
     .toArray(function (err, result) {
@@ -24,7 +25,7 @@ recordRoutes.route('/listings').get(async function (_req, res) {
 });
 
 recordRoutes.route('/list').post(function async(req, res) {
-  const dbConnect = dbo.getDb();
+  const dbConnect = dbi.getDb();
   const matchDocument = {
     email: req.body.email,
   };
@@ -45,7 +46,7 @@ recordRoutes.route('/list').post(function async(req, res) {
         });
     }
     else {
-      res.status(409).send('Email already Exists');
+      res.status(404).send();
       //res.send(409);
     }
     //   console.log(result);
@@ -69,44 +70,88 @@ recordRoutes.route('/list').post(function async(req, res) {
   //   });
   //res.status(200);
 });
-recordRoutes.route('/upload').post(async function (req, res,file) {
- //console.log(req);
- 
+recordRoutes.route('/upload').post(async function (req, res, file) {
+  //console.log(req);
+
   await upload(req, res)
-  
+
   console.log(req.files);
-   const obj = JSON.parse(JSON.stringify(req.body));
-   console.log(obj.email);
+  const obj = JSON.parse(JSON.stringify(req.body));
+  console.log(obj.email);
+  console.log(obj.password);
   const dbConnect = dbo.getDb();
-  const email = {email:obj.email};
-  const images = {
-    $set:{
-      filename:req.files,
+  const email = { email: obj.email };
+  var data = [];
+  var password = [];
+  for (let i = 0; i < req.files.length; i++) {
+    data.push(req.files[i].filename);
+    //console.log(obj.password,"---",req.files[i].originalname)
+    if (obj.password.indexOf(req.files[i].originalname) !== -1) {
+      password.push(req.files[i].filename);
     }
-    
+    else {
+
+    }
+  }
+  console.log(password)
+  console.log(data);
+  const images = {
+    $set: {
+      filename: data,
+      password: password
+    }
+
   };
-  dbConnect.collection("users").updateOne(email,images,function(err,result){
-    if(err){
+  dbConnect.collection("users").updateOne(email, images, function (err, result) {
+    if (err) {
       res.status(400).send(`some error`);
-    }else{
+    } else {
       console.log(`1 document updated`);
       res.status(200).send();
     }
   })
-res.send()
-  
+  res.send()
+
 });
 recordRoutes.route('/download').get(async function (req, res) {
   // res.send(200).send();
   const dbConnect = dbo.getDbI();
+  // console.log(dbConnect);
+  console.log("logged value");
+  console.log(`${imagePath}`);
   const bucket = new GridFSBucket(dbConnect, {
     bucketName: `${imagePath}`,
   });
-  console.log(req.query);
-  let downloadStream = bucket.openDownloadStreamByName("df20334323a9b1e68093cc01f8ae26a4");
+  console.log("logged value");
+  // console.log(req);
+  let downloadStream = bucket.openDownloadStreamByName("907fc6f83eeb6526d3bc9598ec4833b8");
   downloadStream.on("data", function (data) {
     res.status(200).write(data);
   });
+
+  downloadStream.on("error", function (err) {
+    res.status(400).send();
+  });
+  downloadStream.on("end", () => {
+    res.end();
+  })
+})
+recordRoutes.route('/downloads').get(async function (req, res) {
+  // res.send(200).send();
+  const dbConnect = dbi.getDb();
+  console.log(dbConnect);
+  console.log("logged value");
+  console.log(`${imagePath}`);
+  const bucket = new GridFSBucket(dbConnect, {
+    bucketName: `${imagePath}`,
+  });
+  console.log("logged value");
+  console.log(req);
+  let downloadStream = bucket.openDownloadStreamByName("907fc6f83eeb6526d3bc9598ec4833b8");
+  downloadStream.on("data", function (data) {
+    res.status(200).write(data);
+  });
+
   downloadStream.on("error", function (err) {
     res.status(400).send();
   });
@@ -116,7 +161,7 @@ recordRoutes.route('/download').get(async function (req, res) {
 })
 
 recordRoutes.route("/checkemail").post(async function (req, res) {
-  const dbConnect = dbo.getDb();
+  const dbConnect = dbi.getDb();
 
   //console.log(res);
   const matchDocument = {
@@ -133,10 +178,27 @@ recordRoutes.route("/checkemail").post(async function (req, res) {
   });
   res.status(200).send();
 });
+recordRoutes.route("/getemail").post(async function (req, res) {
+  const dbConnect = dbi.getDb();
+  const matchDocument = {
+    email: req.body.email
+  }
+  dbConnect.collection(`users`).findOne(matchDocument,function(err,result){
+    if(err){
+      res.status(404).send();
+    }
+    else{
+      console.log(result.filename);
+      res.json(result.filename).status(200).send();
+    }
+  })
+  // console.log(req);
+  // res.send();
+})
 
 recordRoutes.route("/get").get(async function (req, res) {
   console.log("get")
-  const dbConnect = dbo.getDbI();
+  const dbConnect = dbi.getDb();
   const images = dbConnect.collection(`${imagePath}.files`);
   const cursor = images.find({});
   if (await cursor.count() == 0) {
@@ -151,7 +213,7 @@ recordRoutes.route("/get").get(async function (req, res) {
   res.status(200).send(fileInfos);
 });
 recordRoutes.route('/listings/updateLike').post(function (req, res) {
-  const dbConnect = dbo.getDb();
+  const dbConnect = dbi.getDb();
   const listingQuery = { _id: req.body.id };
   const updates = {
     $inc: {
@@ -177,7 +239,7 @@ recordRoutes.route("/favicon.ico").get((req, res) => {
 })
 
 recordRoutes.route('/listings/delete/').delete((req, res) => {
-  const dbConnect = dbo.getDb();
+  const dbConnect = dbi.getDb();
   console.log(req.body.direction)
   const listingQuery = { direction: req.body.direction };
 
