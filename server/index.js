@@ -4,7 +4,6 @@ const cors = require('cors');
 var bodyParser = require('body-parser');
 // get MongoDB driver connection
 const dbo = require('./db/conn');
-const dbi = require('./db/imageConn');
 
 const PORT = process.env.PORT || 5001;
 const app = express();

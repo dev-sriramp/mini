@@ -1,6 +1,7 @@
 
 import React,{ useState } from 'react';
 import axios from 'axios';
+import imageSelected from '../util/imageSelected';
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -28,7 +29,7 @@ const LoginPage = () => {
   const images = ImageInfo.map(image => {
     return (
       <div>
-        <input value={`${image.alt}`} style={{ position: 'relative', bottom: 180, left: 20 }} type={`checkbox`} onClick={(e) => { imageSelected(e) }}></input>
+        <input value={`${image.alt}`} style={{ position: 'relative', bottom: 180, left: 20 }} type={`checkbox`} onClick={(e) => { imageSelected(e,selectedImage,setSelectedImage) }}></input>
         <img style={{ width: 200, height: 200 }} key={image.alt} src={(`${image.src}`)} />
 
       </div>
@@ -58,23 +59,6 @@ const LoginPage = () => {
       console.log(err);
       setUser("User Email Already Found");
     })
-  }
-  const imageSelected = (e) => {
-    console.log(e.target.checked);
-    var data = [...selectedImage];
-    if (e.target.checked) {
-      data.push(e.target.value);
-      setSelectedImage(data);
-      console.log(data)
-    }
-    else {
-      const index = data.indexOf(e.target.value);
-      if (index > -1) {
-        data.splice(index, 1);
-      }
-      setSelectedImage(data);
-      console.log(data);
-    }
   }
   
   return (

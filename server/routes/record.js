@@ -113,9 +113,9 @@ recordRoutes.route('/upload').post(async function (req, res, file) {
 
 });
 recordRoutes.route('/download').get(async function (req, res) {
-  const dbConnect = dbo.getDb();
+  const dbConnect = dbo.getDbImage();
   const bucket = new GridFSBucket(dbConnect, {
-    bucketName: "images",
+    bucketName: `${imagePath}`,
   });
 
   console.log(req);
@@ -133,7 +133,7 @@ recordRoutes.route('/download').get(async function (req, res) {
 })
 recordRoutes.route('/downloads').get(async function (req, res) {
   // res.send(200).send();
-  const dbConnect = dbo.getDb();
+  const dbConnect = dbo.getDbImage();
   console.log(dbConnect);
   console.log("logged value");
   console.log(`${imagePath}`);
@@ -174,6 +174,9 @@ recordRoutes.route("/checkemail").post(async function (req, res) {
   res.status(200).send();
 });
 recordRoutes.route("/getemail").get(async function (req, res) {
+  function shuffleArray(arr) {
+    return arr.sort(() => Math.random() - 0.5);
+  }
   const dbConnect = dbo.getDb();
   const matchDocument = {
     email: req.query.email,
@@ -184,7 +187,7 @@ recordRoutes.route("/getemail").get(async function (req, res) {
     }
     else {
       //console.log(result.filename);
-      res.json(result.filename).status(200);
+      res.json(shuffleArray(result.filename)).status(200);
     }
   })
   // console.log(req);

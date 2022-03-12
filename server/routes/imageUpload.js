@@ -4,7 +4,7 @@ const {GridFsStorage} = require("multer-gridfs-storage");
 const connectionString = process.env.ATLAS_URI;
 const imagePath = process.env.IMAGE_PATH;
 var storage = new GridFsStorage({
-    url:`${connectionString}/users`,
+    url:`${connectionString}/${imagePath}`,
     options:{useNewUrlParser:true,useUnifiedTopology:true},
     file:(req,file)=>{
        
