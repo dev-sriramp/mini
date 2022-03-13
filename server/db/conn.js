@@ -1,6 +1,7 @@
 const { MongoClient } = require("mongodb");
 const connectionString = process.env.ATLAS_URI;
 const imagePath = process.env.IMAGE_PATH;
+const userPath = process.env.USER_PATH;
 const client = new MongoClient(connectionString, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -16,7 +17,7 @@ module.exports = {
         return callback(err);
       }
 
-      dbConnection = db.db(`${imagePath}`);
+      dbConnection = db.db(`${userPath}`);
       console.log("Successfully connected to MongoDB users");
       dbConnectionToImage = db.db(`${imagePath}`);
       console.log(`Successfully connected to MongoDB ${imagePath}`);
