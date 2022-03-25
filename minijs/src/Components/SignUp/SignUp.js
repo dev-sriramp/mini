@@ -1,23 +1,32 @@
 import axios from "axios";
 import React, { useState } from "react";
 import imageSelected from "../util/imageSelected";
+import validator from 'validator';
 const SignUp = () => {
   const [email, setEmail] = useState("");
   const [images, setImages] = useState([]);
   const [selectedImage,setSelectedImage] = useState([]);
-  // const imagesValue = images.map(async image => {
-  //   const value = await axios.get(`http://localhost:5000/download?image=${image}`)
-  //   console.log(value);
-  //   return (
-  //     <div>
-  //       <img style={{ width: 200, height: 200 }} src={'http://localhost:5000/download?image=4f70d86bb98e5775ddf91c6959ef196f'} />
+  const [emailError, setEmailError] = useState("outline-blue-500")
 
-  //     </div>
-  //   )
-  // })
   const emailCheck = (e) => {
-    let element = e.target.value;
-    setEmail(element);
+    let email = e.target.value;
+    if (validator.isEmail(email)) {
+      setEmailError("outline-green-500");
+    } else {
+      setEmailError("outline-cyan-500");
+    }
+    setEmail(email);
+  }
+  const verifyPassword= async() =>{
+    await axios.post(`http://localhost:5000/verifypassword`,{email:email,password:selectedImage}).then((e)=>{
+      console.log(e);
+
+    }).catch((e)=>{
+      console.log("Error")
+      // setSelectedImage([]);
+       // setImages([]);
+      emailChecked();
+    })
   }
   const emailChecked = async (e) => {
     // var data = [];
@@ -34,12 +43,16 @@ const SignUp = () => {
   }
 
   return (
-    <div>
+    <div className="md:container md:mx-auto grid h-52 place-content-center">
       <form >
-        <h1>Email</h1>
-        <input type="text" name="email" placeholder="email" value={email} onChange={(e) => { emailCheck(e) }} ></input>
+        <div>
+        <h1 className="mt-32 mb-5 text-2xl font-bold underline">Graphical password Login</h1>
+        </div>
+        <div>
+      <input className={`block mr-4 py-2 px-4 w-full ring focus:outline-green-500 font-serif subpixel-antialiased tracking-wide rounded-md ${emailError}`} type="text" name="email" placeholder="Email" value={email} onChange={(e) => { emailCheck(e) }} ></input>
+      </div>
         <br />
-        <button type="button" onClick={(e) => { emailChecked(e) }}>Next</button>
+        <button className="block w-full text-sm text-slate-500 mr-4 py-2 px-4 rounded-full border-0 text-sm font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100" type="button" onClick={(e) => { emailChecked(e) }}>Next</button>
         {/* <p>{user}</p> */}
       </form>
       {/* {imagesValue} */}
@@ -56,9 +69,7 @@ const SignUp = () => {
         })
 
       }
-      <button onClick={(e)=>{
-        console.log(selectedImage)
-      }}>find</button>
+      <button onClick={(e)=>{verifyPassword()}}>find</button>
       
 
     </div>

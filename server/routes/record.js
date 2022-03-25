@@ -2,25 +2,41 @@ const express = require('express');
 const { GridFSBucket } = require('mongodb');
 const { GridFsStorage } = require('multer-gridfs-storage');
 const imagePath = process.env.IMAGE_PATH;
+const userPath = process.env.USER_PATH;
 const recordRoutes = express.Router();
 const dbo = require('../db/conn');
+const nodemailer = require('nodemailer');
+const smtpTransport = require("nodemailer-smtp-transport");
 
 const upload = require("./imageUpload");
 
-recordRoutes.route('/listings').get(async function (_req, res) {
-  const dbConnect = dbo.getDb();
+recordRoutes.route('/listings').get(async function (req, res) {
+  
+  var smtpTransport = nodemailer.createTransport(({
+    host : "smtp.office365.com",
+    port: 587,
+    auth : {
+        user : "graphicalpa@outlook.com",
+        pass : "1qaz2wsx#E"
+    }
+}));
 
-  dbConnect
-    .collection('users')
-    .find({})
-    .limit(50)
-    .toArray(function (err, result) {
-      if (err) {
-        res.status(400).send('Error fetching listings!');
-      } else {
-        res.json(result).status(200).send();
-      }
-    });
+var mailOptions={
+       from : "GRAPHICAL PASSWORD AUTHENTICATION <graphicalpa@outlook.com>",
+       to : "dev.sriramp@gmail.com",
+       subject : "Send Mail",
+       text : "Test"
+
+}
+smtpTransport.sendMail(mailOptions, function(error, response){
+    if(error){
+        console.log("Message Not Send", error);
+    }else{
+        console.log("Message sent!");
+    }
+});
+  res.send();
+  
 });
 
 recordRoutes.route('/list').post(function async(req, res) {
@@ -118,7 +134,7 @@ recordRoutes.route('/download').get(async function (req, res) {
     bucketName: `${imagePath}`,
   });
 
-  console.log(req);
+  // console.log(req);
   let downloadStream = bucket.openDownloadStreamByName(req.query.image);
   downloadStream.on("data", function (data) {
     res.status(200).write(data);
@@ -134,14 +150,14 @@ recordRoutes.route('/download').get(async function (req, res) {
 recordRoutes.route('/downloads').get(async function (req, res) {
   // res.send(200).send();
   const dbConnect = dbo.getDbImage();
-  console.log(dbConnect);
-  console.log("logged value");
-  console.log(`${imagePath}`);
+  // console.log(dbConnect);
+  // console.log("logged value");
+  // console.log(`${imagePath}`);
   const bucket = new GridFSBucket(dbConnect, {
     bucketName: `${imagePath}`,
   });
-  console.log("logged value");
-  console.log(req);
+  // console.log("logged value");
+  // console.log(req);
   let downloadStream = bucket.openDownloadStreamByName("4f70d86bb98e5775ddf91c6959ef196f");
   downloadStream.on("data", function (data) {
     res.status(200).write(data);
@@ -154,7 +170,26 @@ recordRoutes.route('/downloads').get(async function (req, res) {
     res.end();
   })
 })
+recordRoutes.route(`/verifypassword`).post(async function(req,res){
+  const dbConnect = dbo.getDb();
+  const matchDocument = {
+    email:req.body.email,
+  }
+   await dbConnect.collection(`${userPath}`).findOne(matchDocument).then((e)=>{
+    console.log(e.password)
+    if(JSON.stringify(e.password) === JSON.stringify(req.body.password)){
+      console.log("Passwords are same ")
+      console.log(req.body.password);
+      res.status(200).send({value:"true"})
+    }
+    else{
+      res.status(200).send({value:"false"})
+    }
+  })
+ 
 
+  
+})
 recordRoutes.route("/checkemail").post(async function (req, res) {
   const dbConnect = dbo.getDb();
 
@@ -186,8 +221,14 @@ recordRoutes.route("/getemail").get(async function (req, res) {
       res.status(404);
     }
     else {
+      try{
+        res.json(shuffleArray(result.filename)).status(200);
+      }
+      catch{
+        res.status(400).send();
+      }
       //console.log(result.filename);
-      res.json(shuffleArray(result.filename)).status(200);
+      
     }
   })
   // console.log(req);

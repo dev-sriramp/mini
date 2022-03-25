@@ -3,6 +3,7 @@ import React,{ useState } from 'react';
 import axios from 'axios';
 import imageSelected from '../util/imageSelected';
 
+
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [user, setUser] = useState("");
@@ -35,6 +36,11 @@ const LoginPage = () => {
       </div>
     )
   })
+  const sendEmail = async () =>{
+    await axios.get("http://localhost:5000/listings").then((res)=>{
+      console.log(res);
+    })
+  }
   const update = async (e) => {
     var fileUpload = new FormData();
     ImageInfo.map(images => {
@@ -81,6 +87,7 @@ const LoginPage = () => {
         </form>
       }
       {images}
+      <button onClick={()=>{sendEmail()}}>SEND OTP</button>
     </div>
 
   );
