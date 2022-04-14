@@ -1,11 +1,14 @@
 const { MongoClient } = require("mongodb");
 const connectionString = process.env.ATLAS_URI;
+const imagePath = process.env.IMAGE_PATH;
+const userPath = process.env.USER_PATH;
 const client = new MongoClient(connectionString, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
 let dbConnection;
+let dbConnectionToImage;
 
 module.exports = {
   connectToServer: function (callback) {
@@ -14,14 +17,17 @@ module.exports = {
         return callback(err);
       }
 
-      dbConnection = db.db("sample");
-      console.log("Successfully connected to MongoDB.");
-
+      dbConnection = db.db(`${userPath}`);
+      console.log("Successfully connected to MongoDB users");
+      dbConnectionToImage = db.db(`${imagePath}`);
+      console.log(`Successfully connected to MongoDB ${imagePath}`);
       return callback();
     });
   },
-
   getDb: function () {
     return dbConnection;
+  },
+  getDbImage: function(){
+    return dbConnectionToImage;
   },
 };
