@@ -23,8 +23,8 @@ const SignUp = () => {
 
     }).catch((e)=>{
       console.log("Error")
-      // setSelectedImage([]);
-       // setImages([]);
+       setSelectedImage([]);
+        setImages([]);
       emailChecked();
     })
   }
@@ -43,16 +43,21 @@ const SignUp = () => {
   }
 
   return (
-    <div className="md:container md:mx-auto grid h-52 place-content-center">
+
+    <div className="">
+      <center>
       <form >
         <div>
-        <h1 className="mt-32 mb-5 text-2xl font-bold underline">Graphical password Login</h1>
+        <h1 className="">Graphical password Login</h1>
         </div>
         <div>
-      <input className={`block mr-4 py-2 px-4 w-full ring focus:outline-green-500 font-serif subpixel-antialiased tracking-wide rounded-md ${emailError}`} type="text" name="email" placeholder="Email" value={email} onChange={(e) => { emailCheck(e) }} ></input>
+      <input className={``} type="text" name="email" placeholder="Email" value={email} onChange={(e) => { emailCheck(e) }} ></input>
       </div>
         <br />
-        <button className="block w-full text-sm text-slate-500 mr-4 py-2 px-4 rounded-full border-0 text-sm font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100" type="button" onClick={(e) => { emailChecked(e) }}>Next</button>
+        {
+          !images[0] ? <button className="" type="button" onClick={(e) => { emailChecked(e) }}>Next</button> : ""
+        }
+        
         {/* <p>{user}</p> */}
       </form>
       {/* {imagesValue} */}
@@ -71,7 +76,7 @@ const SignUp = () => {
       }
       <button onClick={(e)=>{verifyPassword()}}>find</button>
       
-
+      </center>
     </div>
   )
 }

@@ -7,38 +7,59 @@ const recordRoutes = express.Router();
 const dbo = require('../db/conn');
 const nodemailer = require('nodemailer');
 const smtpTransport = require("nodemailer-smtp-transport");
-
 const upload = require("./imageUpload");
+var otpGlobal;
 
 recordRoutes.route('/listings').get(async function (req, res) {
-  
-  var smtpTransport = nodemailer.createTransport(({
-    host : "smtp.office365.com",
-    port: 587,
-    auth : {
-        user : "graphicalpa@outlook.com",
-        pass : "1qaz2wsx#E"
+  const dbConnect = dbo.getDb();
+  const matchDocument = {
+    email: req.body.email,
+  };
+  dbConnect.collection("users").find(matchDocument).toArray(function (err, result) {
+    if (result.length == 0) {
+      
+      var smtpTransport = nodemailer.createTransport(({
+        host: "smtp.office365.com",
+        port: 587,
+        auth: {
+          user: "graphicalpa@outlook.com",
+          pass: "1qaz2wsx#E"
+        }
+      }));
+      var otp = Math.random();
+      otp = otp * 1000000;
+      otp = parseInt(otp);
+      console.log(otp);
+      otpGlobal=otp;
+      var mailOptions = {
+        from: "GRAPHICAL PASSWORD AUTHENTICATION <graphicalpa@outlook.com>",
+        to: "dev.sriramp@gmail.com",
+        subject: "Send Mail",
+        text: `your one time password is ${otp}`
+
+      }
+      smtpTransport.sendMail(mailOptions, function (error, response) {
+        if (error) {
+          console.log("Message Not Send", error);
+        } else {
+          console.log("Message sent!");
+        }
+      });
+      res.send();
+
+
     }
-}));
-
-var mailOptions={
-       from : "GRAPHICAL PASSWORD AUTHENTICATION <graphicalpa@outlook.com>",
-       to : "dev.sriramp@gmail.com",
-       subject : "Send Mail",
-       text : "Test"
-
-}
-smtpTransport.sendMail(mailOptions, function(error, response){
-    if(error){
-        console.log("Message Not Send", error);
-    }else{
-        console.log("Message sent!");
+    else {
+      res.status(404).send();
+      //res.send(409);
     }
-});
-  res.send();
-  
-});
+    //   console.log(result);
 
+    // res.json(result)
+
+  })
+
+});
 recordRoutes.route('/list').post(function async(req, res) {
   const dbConnect = dbo.getDb();
   const matchDocument = {
@@ -170,25 +191,25 @@ recordRoutes.route('/downloads').get(async function (req, res) {
     res.end();
   })
 })
-recordRoutes.route(`/verifypassword`).post(async function(req,res){
+recordRoutes.route(`/verifypassword`).post(async function (req, res) {
   const dbConnect = dbo.getDb();
   const matchDocument = {
-    email:req.body.email,
+    email: req.body.email,
   }
-   await dbConnect.collection(`${userPath}`).findOne(matchDocument).then((e)=>{
+  await dbConnect.collection(`${userPath}`).findOne(matchDocument).then((e) => {
     console.log(e.password)
-    if(JSON.stringify(e.password) === JSON.stringify(req.body.password)){
+    if (JSON.stringify(e.password) === JSON.stringify(req.body.password)) {
       console.log("Passwords are same ")
       console.log(req.body.password);
-      res.status(200).send({value:"true"})
+      res.status(200).send({ value: "true" })
     }
-    else{
-      res.status(200).send({value:"false"})
+    else {
+      res.status(400).send({ value: "false" })
     }
   })
- 
 
-  
+
+
 })
 recordRoutes.route("/checkemail").post(async function (req, res) {
   const dbConnect = dbo.getDb();
@@ -199,7 +220,7 @@ recordRoutes.route("/checkemail").post(async function (req, res) {
   };
   console.log(req.body.email);
 
-  dbConnect.collection("kjdf").insertOne(matchDocument, function (err, result) {
+  dbConnect.collection("users").insertOne(matchDocument, function (err, result) {
     if (err) {
       res.status(400).send('Error inserting matches!');
     } else {
@@ -221,14 +242,14 @@ recordRoutes.route("/getemail").get(async function (req, res) {
       res.status(404);
     }
     else {
-      try{
+      try {
         res.json(shuffleArray(result.filename)).status(200);
       }
-      catch{
+      catch {
         res.status(400).send();
       }
       //console.log(result.filename);
-      
+
     }
   })
   // console.log(req);

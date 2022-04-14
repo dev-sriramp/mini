@@ -30,9 +30,8 @@ const LoginPage = () => {
   const images = ImageInfo.map(image => {
     return (
       <div>
-        <input value={`${image.alt}`} style={{ position: 'relative', bottom: 180, left: 20 }} type={`checkbox`} onClick={(e) => { imageSelected(e,selectedImage,setSelectedImage) }}></input>
+        <input value={`${image.alt}`} style={{ position: 'relative',bottom:0, left: 20 }} type={`checkbox`} onClick={(e) => { imageSelected(e,selectedImage,setSelectedImage) }}></input>
         <img style={{ width: 200, height: 200 }} key={image.alt} src={(`${image.src}`)} />
-
       </div>
     )
   })
@@ -66,6 +65,9 @@ const LoginPage = () => {
       setUser("User Email Already Found");
     })
   }
+  const verifyOtp = async (e) =>{
+    
+  }
   
   return (
     <div className="App">
@@ -76,6 +78,8 @@ const LoginPage = () => {
         <button type="button" onClick={(e) => { emailChecked(e) }}>Next</button>
         <p>{user}</p>
       </form>}
+      <input type='number' onClick={e=>{verifyOtp(e)}}></input>
+
       {
         newUser && <form  >
           <input

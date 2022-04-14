@@ -1,8 +1,8 @@
 import './App.css';
 import React,{ useState } from 'react';
 import axios from 'axios';
-import LoginPage from './Components/login/LoginPage';
-import SignUp from './Components/SignUp/SignUp';
+import SignUp from './Components/signUp/signUp';
+import LoginPage from './Components/LoginScreen/login';
 import {
   BrowserRouter,
   Routes,
@@ -15,8 +15,8 @@ const App = () => {
 <BrowserRouter>
     <Routes>
       <Route path="/" element={<Navigate to="/login" />}  />
+      <Route exact path="/create" element={<SignUp />} />
       <Route exact path="/login" element={<LoginPage />} />
-      <Route exact path="/signup" element={<SignUp />} />
     </Routes>
   </BrowserRouter>
   )
