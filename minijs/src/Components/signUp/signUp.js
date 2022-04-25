@@ -57,8 +57,8 @@ const LoginPage = () => {
     setEmail(element);
   }
   const emailChecked = async (e) => {
-    await axios.post("http://localhost:5000/list", { email: email }).then((e) => {
-      setUser("User Created");
+    await axios.post("http://localhost:5000/checkuser", { email: email }).then((e) => {
+      setUser("");
       setNewUser(true);
     }).catch((err) => {
       console.log(err);
@@ -72,13 +72,13 @@ const LoginPage = () => {
   return (
     <div className="App">
       {!newUser && <form >
-        <h1>Email</h1>
+        <h1>Craete Account</h1>
         <input type="text" name="email" placeholder="email" value={email} onChange={(e) => { emailCheck(e) }} ></input>
         <br />
         <button type="button" onClick={(e) => { emailChecked(e) }}>Next</button>
         <p>{user}</p>
       </form>}
-      <input type='number' onClick={e=>{verifyOtp(e)}}></input>
+      
 
       {
         newUser && <form  >
@@ -91,7 +91,7 @@ const LoginPage = () => {
         </form>
       }
       {images}
-      <button onClick={()=>{sendEmail()}}>SEND OTP</button>
+      
     </div>
 
   );
