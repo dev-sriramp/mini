@@ -156,8 +156,9 @@ recordRoutes.route('/upload').post(async function (req, res, file) {
                 console.log(result.insertedId.toString());
                 var today = new Date();
                 today.setMinutes(today.getMinutes() + 1);
+               
                 var token = {
-                  "expireAt": today,
+                  "DateTime": new Date(),
                   userid: result.insertedId,
                   token: crypto.randomBytes(32).toString("hex")
                 }
@@ -165,6 +166,7 @@ recordRoutes.route('/upload').post(async function (req, res, file) {
                 dbConnect.collection('otp').insertOne(token, function (otperr, otpres) {
                   if (otpres) {
                     const url = `localhost:3000/${token.userid}/verify/${token.token}`;
+                    console.log(url);
                     sendEmail(obj.email, "Verify Email", url);
                     res.status(200).send();
                   }
@@ -266,8 +268,12 @@ recordRoutes.route("/getemail").get(async function (req, res) {
       res.status(404);
     }
     else {
+      
       try {
-        res.json(shuffleArray(result.filename)).status(200);
+        if(result.verified){
+          res.json(shuffleArray(result.filename)).status(200);
+        }
+        res.status(401).send();
       }
       catch {
         res.status(400).send();

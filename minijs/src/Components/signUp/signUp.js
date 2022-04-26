@@ -2,7 +2,7 @@
 import React,{ useState } from 'react';
 import axios from 'axios';
 import imageSelected from '../util/imageSelected';
-
+import {Link} from "react-router-dom";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -36,7 +36,7 @@ const LoginPage = () => {
     )
   })
   const sendEmail = async () =>{
-    await axios.get("http://localhost:5000/listings").then((res)=>{
+    await axios.get(`http://localhost:${process.env.React_App_DBPORT}/listings`).then((res)=>{
       console.log(res);
     })
   }
@@ -47,7 +47,7 @@ const LoginPage = () => {
     })
     fileUpload.append('email', email);
     fileUpload.append('password',selectedImage);
-    await axios.post("http://localhost:5000/upload", fileUpload).then((res) => {
+    await axios.post(`http://localhost:${process.env.React_App_DBPORT}/upload`, fileUpload).then((res) => {
       console.log(res);
       setPassowrdUpdated(true);
     })
@@ -57,7 +57,7 @@ const LoginPage = () => {
     setEmail(element);
   }
   const emailChecked = async (e) => {
-    await axios.post("http://localhost:5000/checkuser", { email: email }).then((e) => {
+    await axios.post(`http://localhost:${process.env.React_App_DBPORT}/checkuser`, { email: email }).then((e) => {
       setUser("");
       setNewUser(true);
     }).catch((err) => {
@@ -66,9 +66,9 @@ const LoginPage = () => {
     })
   }
   const verifyOtp = async (e) =>{
-    
+
   }
-  
+
   return (
     <div className="App">
       {!newUser && <form >
@@ -78,8 +78,15 @@ const LoginPage = () => {
         <button type="button" onClick={(e) => { emailChecked(e) }}>Next</button>
         <p>{user}</p>
       </form>}
-      
 
+{!newUser &&
+        <div>
+          <Link to="/login">
+          <button>Already Have an Account</button>
+      </Link>
+        </div>
+
+}
       {
         newUser && <form  >
           <input
@@ -91,7 +98,7 @@ const LoginPage = () => {
         </form>
       }
       {images}
-      
+
     </div>
 
   );

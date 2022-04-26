@@ -10,8 +10,8 @@ module.exports = {
     const bucket = new GridFSBucket(dbConnect, {
       bucketName: `${imagePath}`,
     });
-
-    let downloadStream = bucket.openDownloadStreamByName("8414fc0e1e02b56a3edd79ff501376e2");
+    console.log(req.query.image)
+    let downloadStream = bucket.openDownloadStreamByName(req.query.image);
     downloadStream.on("data", function (data) {
       res.status(200).write(data);
     });

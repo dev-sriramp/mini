@@ -2,11 +2,14 @@ import axios from "axios";
 import React, { useState } from "react";
 import imageSelected from "../util/imageSelected";
 import validator from 'validator';
+import { Link } from "react-router-dom";
 const SignUp = () => {
   const [email, setEmail] = useState("");
   const [images, setImages] = useState([]);
   const [selectedImage,setSelectedImage] = useState([]);
-  const [emailError, setEmailError] = useState("outline-blue-500")
+  const [emailVerified,setEmailVerified] = useState("");
+  const [emailError, setEmailError] = useState("outline-blue-500");
+  const [showresend,setShowresend] = useState(false);
 
   const emailCheck = (e) => {
     let email = e.target.value;
@@ -18,7 +21,7 @@ const SignUp = () => {
     setEmail(email);
   }
   const verifyPassword= async() =>{
-    await axios.post(`http://localhost:5000/verifypassword`,{email:email,password:selectedImage}).then((e)=>{
+    await axios.post(`http://localhost:${process.env.React_App_DBPORT}/verifypassword`,{email:email,password:selectedImage}).then((e)=>{
       console.log(e);
 
     }).catch((e)=>{
@@ -29,13 +32,21 @@ const SignUp = () => {
     })
   }
   const emailChecked = async (e) => {
+    console.log(process.env.React_App_DBPORT);
     // var data = [];
-    await axios.get(`http://localhost:5000/getemail?email=${email}`).then((e) => {
+    await axios.get(`http://localhost:${process.env.React_App_DBPORT}/getemail?email=${email}`).then((e) => {
       setImages(e.data);
-      console.log(e.data);
+      console.log(e);
 
     }).catch((err) => {
       console.log(err);
+      if(err.toString().includes("code 400")){
+        setEmailVerified("Email Not Found");
+      }
+      if(err.toString().includes("code 401")){
+        setEmailVerified("Verify Your Email");
+        setShowresend(true);
+      }
 
     })
     //setImages(data);
@@ -57,8 +68,14 @@ const SignUp = () => {
         {
           !images[0] ? <button className="" type="button" onClick={(e) => { emailChecked(e) }}>Next</button> : ""
         }
-        
-        {/* <p>{user}</p> */}
+        {
+          <p>{emailVerified}</p>
+        }
+      {
+        showresend && <button type="button">
+          resend verification Email
+        </button>
+      }
       </form>
       {/* {imagesValue} */}
       {
@@ -67,15 +84,21 @@ const SignUp = () => {
           return (
             <>
               <input value={`${image}`} style={{ position: 'relative', bottom: 180, left: 20 }} type={`checkbox`} onClick={(e) => { imageSelected(e,selectedImage,setSelectedImage) }}></input>
-              <img style={{ width: 200, height: 200 }} key={`${image}`} src={`http://localhost:5000/download?image=${image}`} />
+            <img style={{ width: 200, height: 200 }} key={`${image}`} src={`http://localhost:${process.env.React_App_DBPORT}/download?image=${image}`} />
             </>
 
           )
         })
 
       }
+      <div>
+        <Link to="/create">
+        <button>Create An Account</button>
+    </Link>
+      </div>
+      <div>
       <button onClick={(e)=>{verifyPassword()}}>find</button>
-      
+  </div>
       </center>
     </div>
   )
