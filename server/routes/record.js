@@ -3,6 +3,7 @@ const { GridFSBucket, ObjectId } = require('mongodb');
 const { GridFsStorage } = require('multer-gridfs-storage');
 const imagePath = process.env.IMAGE_PATH;
 const userPath = process.env.USER_PATH;
+const PORT = process.env.PORT;
 const recordRoutes = express.Router();
 const dbo = require('../db/conn');
 const nodemailer = require('nodemailer');
@@ -10,9 +11,12 @@ const smtpTransport = require("nodemailer-smtp-transport");
 const upload = require("./imageUpload");
 const { checkemail } = require('./checkUser');
 const crypto = require("crypto");
+
+
 // import { download } from "./samplerecord";
 const { download } = require("./samplerecord");
 const sendEmail = require("./sendEmail");
+const {resendEmail } = require("./resendEmail")
 const { ObjectID } = require('mongodb');
 
 recordRoutes.route('/listings').get(async function (req, res) {
@@ -67,12 +71,13 @@ recordRoutes.route('/listings').get(async function (req, res) {
 });
 recordRoutes.get("/download", download);
 recordRoutes.post('/checkuser', checkemail);
+recordRoutes.get("/resendemail",resendEmail);
 
-recordRoutes.route("/:id/verify/:token").get(async function (req, res) {
+recordRoutes.route("/user/:id/verify/:token").get(async function (req, res) {
   try {
     const dbConnect = dbo.getDb();
     await dbConnect.collection("users").findOne({ _id: new ObjectId(req.params.id) }, async function (err, result) {
-      
+
       if (result) {
 
         await dbConnect.collection("otp").findOne({ userid: result._id, token: req.params.token }, async function (error, verified) {
@@ -84,7 +89,7 @@ recordRoutes.route("/:id/verify/:token").get(async function (req, res) {
                 await dbConnect.collection("otp").deleteOne({
                   userid: result._id, token: req.params.token
                 })
-               
+
               }
               else {
                 res.status(404).send();
@@ -156,7 +161,7 @@ recordRoutes.route('/upload').post(async function (req, res, file) {
                 console.log(result.insertedId.toString());
                 var today = new Date();
                 today.setMinutes(today.getMinutes() + 1);
-               
+
                 var token = {
                   "DateTime": new Date(),
                   userid: result.insertedId,
@@ -165,7 +170,7 @@ recordRoutes.route('/upload').post(async function (req, res, file) {
 
                 dbConnect.collection('otp').insertOne(token, function (otperr, otpres) {
                   if (otpres) {
-                    const url = `localhost:3000/${token.userid}/verify/${token.token}`;
+                    const url = `localhost:${PORT}/user/${token.userid}/verify/${token.token}`;
                     console.log(url);
                     sendEmail(obj.email, "Verify Email", url);
                     res.status(200).send();
@@ -268,7 +273,7 @@ recordRoutes.route("/getemail").get(async function (req, res) {
       res.status(404);
     }
     else {
-      
+
       try {
         if(result.verified){
           res.json(shuffleArray(result.filename)).status(200);
