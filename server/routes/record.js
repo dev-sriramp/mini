@@ -1,14 +1,23 @@
 const express = require('express');
-const { GridFSBucket } = require('mongodb');
+const { GridFSBucket, ObjectId } = require('mongodb');
 const { GridFsStorage } = require('multer-gridfs-storage');
 const imagePath = process.env.IMAGE_PATH;
 const userPath = process.env.USER_PATH;
+const PORT = process.env.PORT;
 const recordRoutes = express.Router();
 const dbo = require('../db/conn');
 const nodemailer = require('nodemailer');
 const smtpTransport = require("nodemailer-smtp-transport");
 const upload = require("./imageUpload");
-var otpGlobal;
+const { checkemail } = require('./checkUser');
+const crypto = require("crypto");
+
+
+// import { download } from "./samplerecord";
+const { download } = require("./samplerecord");
+const sendEmail = require("./sendEmail");
+const {resendEmail } = require("./resendEmail")
+const { ObjectID } = require('mongodb');
 
 recordRoutes.route('/listings').get(async function (req, res) {
   const dbConnect = dbo.getDb();
@@ -17,7 +26,7 @@ recordRoutes.route('/listings').get(async function (req, res) {
   };
   dbConnect.collection("users").find(matchDocument).toArray(function (err, result) {
     if (result.length == 0) {
-      
+
       var smtpTransport = nodemailer.createTransport(({
         host: "smtp.office365.com",
         port: 587,
@@ -30,7 +39,7 @@ recordRoutes.route('/listings').get(async function (req, res) {
       otp = otp * 1000000;
       otp = parseInt(otp);
       console.log(otp);
-      otpGlobal=otp;
+      otpGlobal = otp;
       var mailOptions = {
         from: "GRAPHICAL PASSWORD AUTHENTICATION <graphicalpa@outlook.com>",
         to: "dev.sriramp@gmail.com",
@@ -60,61 +69,56 @@ recordRoutes.route('/listings').get(async function (req, res) {
   })
 
 });
-recordRoutes.route('/list').post(function async(req, res) {
-  const dbConnect = dbo.getDb();
-  const matchDocument = {
-    email: req.body.email,
-  };
+recordRoutes.get("/download", download);
+recordRoutes.post('/checkuser', checkemail);
+recordRoutes.get("/resendemail",resendEmail);
 
-  dbConnect.collection("users").find(matchDocument).toArray(function (err, result) {
-    if (result.length == 0) {
-      dbConnect
-        .collection('users')
-        .insertOne(matchDocument, function async(err, result) {
-          if (err) {
-            res.status(400).send('Error inserting matches!');
-          } else {
-            console.log(`Added a new match with id ${result.insertedId}`);
-            console.log(result);
-            res.json(result).status(200);
+recordRoutes.route("/user/:id/verify/:token").get(async function (req, res) {
+  try {
+    const dbConnect = dbo.getDb();
+    await dbConnect.collection("users").findOne({ _id: new ObjectId(req.params.id) }, async function (err, result) {
+
+      if (result) {
+
+        await dbConnect.collection("otp").findOne({ userid: result._id, token: req.params.token }, async function (error, verified) {
+          if (verified) {
+
+            await dbConnect.collection("users").updateOne({ email:result.email},{$set:{"verified":true}}, async function (updateerr, updateres) {
+              if (!updateerr) {
+                res.status(200).send({ message: "verified" });
+                await dbConnect.collection("otp").deleteOne({
+                  userid: result._id, token: req.params.token
+                })
+
+              }
+              else {
+                res.status(404).send();
+              }
+            });
+
 
           }
-        });
-    }
-    else {
-      res.status(404).send();
-      //res.send(409);
-    }
-    //   console.log(result);
+          else {
+            res.status(404).send();
+          }
 
-    // res.json(result)
+        })
+      }
+      else {
+        res.status(404).send();
+      }
 
-  })
-  // dbConnect
-  //   .collection('users')
-  //   .insertOne(matchDocument, function async(err, result) {
-  //     if (err) {
-  //       res.status(400).send('Error inserting matches!');
-  //     } else {
-  //       console.log(`Added a new match with id ${result.insertedId}`);
-  //       console.log(result);
-  //     //let value = result;
-  //     console.log("First")
-  //         res.json(result).status(200);
-  //         console.log("First")
-  //     }
-  //   });
-  //res.status(200);
-});
+    })
+  }
+  catch (err) {
+
+  }
+})
+
 recordRoutes.route('/upload').post(async function (req, res, file) {
   //console.log(req);
-
   await upload(req, res)
-
-  console.log(req.files);
   const obj = JSON.parse(JSON.stringify(req.body));
-  console.log(obj.email);
-  console.log(obj.password);
   const dbConnect = dbo.getDb();
   const email = { email: obj.email };
   var data = [];
@@ -129,45 +133,72 @@ recordRoutes.route('/upload').post(async function (req, res, file) {
 
     }
   }
-  console.log(password)
-  console.log(data);
   const images = {
     $set: {
       filename: data,
-      password: password
+      password: password,
+      verified: false
     }
 
   };
-  dbConnect.collection("users").updateOne(email, images, function (err, result) {
-    if (err) {
-      res.status(400).send(`some error`);
-    } else {
-      console.log(`1 document updated`);
-      res.status(200).send();
+  const matchDocument = {
+    email: obj.email,
+  };
+
+  dbConnect.collection("users").find(matchDocument).toArray(function (err, result) {
+    if (result.length == 0) {
+
+      dbConnect
+        .collection('users')
+        .insertOne(matchDocument, function async(err, result) {
+          if (err) {
+            res.status(400).send('Error inserting matches!');
+          } else {
+            dbConnect.collection("users").updateOne(email, images, function async(errupdate, resultupdate) {
+              if (errupdate) {
+                res.status(400).send(`some error`);
+              } else {
+                console.log(result.insertedId.toString());
+                var today = new Date();
+                today.setMinutes(today.getMinutes() + 1);
+
+                var token = {
+                  "DateTime": new Date(),
+                  userid: result.insertedId,
+                  token: crypto.randomBytes(32).toString("hex")
+                }
+
+                dbConnect.collection('otp').insertOne(token, function (otperr, otpres) {
+                  if (otpres) {
+                    const url = `localhost:${PORT}/user/${token.userid}/verify/${token.token}`;
+                    console.log(url);
+                    sendEmail(obj.email, "Verify Email", url);
+                    res.status(200).send();
+                  }
+                  else {
+                    res.status(500);
+                  }
+
+                })
+
+              }
+            })
+            res.send()
+          }
+
+
+        })
+
     }
-  })
-  res.send()
+    else {
+      res.status(409).send();
+    }
 
+  }
+  );
 });
-recordRoutes.route('/download').get(async function (req, res) {
-  const dbConnect = dbo.getDbImage();
-  const bucket = new GridFSBucket(dbConnect, {
-    bucketName: `${imagePath}`,
-  });
 
-  // console.log(req);
-  let downloadStream = bucket.openDownloadStreamByName(req.query.image);
-  downloadStream.on("data", function (data) {
-    res.status(200).write(data);
-  });
 
-  downloadStream.on("error", function (err) {
-    res.status(400).send();
-  });
-  downloadStream.on("end", () => {
-    res.end();
-  })
-})
 recordRoutes.route('/downloads').get(async function (req, res) {
   // res.send(200).send();
   const dbConnect = dbo.getDbImage();
@@ -179,7 +210,7 @@ recordRoutes.route('/downloads').get(async function (req, res) {
   });
   // console.log("logged value");
   // console.log(req);
-  let downloadStream = bucket.openDownloadStreamByName("4f70d86bb98e5775ddf91c6959ef196f");
+  let downloadStream = bucket.openDownloadStreamByName("8414fc0e1e02b56a3edd79ff501376e2");
   downloadStream.on("data", function (data) {
     res.status(200).write(data);
   });
@@ -242,8 +273,12 @@ recordRoutes.route("/getemail").get(async function (req, res) {
       res.status(404);
     }
     else {
+
       try {
-        res.json(shuffleArray(result.filename)).status(200);
+        if(result.verified){
+          res.json(shuffleArray(result.filename)).status(200);
+        }
+        res.status(401).send();
       }
       catch {
         res.status(400).send();
@@ -318,4 +353,4 @@ recordRoutes.route('/listings/delete/').delete((req, res) => {
     });
 });
 
-module.exports = recordRoutes;
+module.exports = recordRoutes
