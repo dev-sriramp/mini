@@ -5,7 +5,7 @@ const imagePath = process.env.IMAGE_PATH;
 const dbo = require('../db/conn');
 
 module.exports = {
-  download:  async function(req, res) {
+  getPassword:  async function(req, res) {
     const dbConnect = dbo.getDbImage();
     const bucket = new GridFSBucket(dbConnect, {
       bucketName: `${imagePath}`,

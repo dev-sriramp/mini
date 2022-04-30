@@ -7,7 +7,7 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [images, setImages] = useState([]);
   const [selectedImage,setSelectedImage] = useState([]);
-  const [emailVerified,setEmailVerified] = useState("");
+    const [emailVerified,setEmailVerified] = useState("");
   const [emailError, setEmailError] = useState("outline-blue-500");
   const [showresend,setShowresend] = useState(false);
   const [passwordVerified,setPasswordVerified] = useState(false);
@@ -52,7 +52,7 @@ const SignUp = () => {
   const emailChecked = async (e) => {
     console.log(process.env.React_App_DBPORT);
     // var data = [];
-    await axios.get(`http://localhost:${process.env.React_App_DBPORT}/getemail?email=${email}`).then((e) => {
+    await axios.get(`http://localhost:${process.env.React_App_DBPORT}/getallimages?email=${email}`).then((e) => {
       setImages(e.data);
       // console.log(e);
 
@@ -87,7 +87,7 @@ const SignUp = () => {
           !images[0] ? <button className="" type="button" onClick={(e) => { emailChecked(e) }}>Next</button> : ""
         }
         {!images[0] &&
-          <p>{emailVerified}</p>
+            <p>{emailVerified}</p>
         }
       {
         !images[0]&&
@@ -105,7 +105,7 @@ const SignUp = () => {
           return (
             <>
               <input value={`${image}`} style={{ position: 'relative', bottom: 180, left: 20 }} type={`checkbox`} onClick={(e) => { imageSelected(e,selectedImage,setSelectedImage) }}></input>
-            <img style={{ width: 200, height: 200 }} key={`${image}`} src={`http://localhost:${process.env.React_App_DBPORT}/download?image=${image}`} />
+            <img style={{ width: 200, height: 200 }} key={`${image}`} src={`http://localhost:${process.env.React_App_DBPORT}/getPassword?image=${image}`} />
             </>
 
           )

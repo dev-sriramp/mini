@@ -35,11 +35,6 @@ const LoginPage = () => {
       </div>
     )
   })
-  const sendEmail = async () =>{
-    await axios.get(`http://localhost:${process.env.React_App_DBPORT}/listings`).then((res)=>{
-      console.log(res);
-    })
-  }
   const update = async (e) => {
     var fileUpload = new FormData();
     ImageInfo.map(images => {
@@ -47,7 +42,7 @@ const LoginPage = () => {
     })
     fileUpload.append('email', email);
     fileUpload.append('password',selectedImage);
-    await axios.post(`http://localhost:${process.env.React_App_DBPORT}/upload`, fileUpload).then((res) => {
+    await axios.post(`http://localhost:${process.env.React_App_DBPORT}/createuser`, fileUpload).then((res) => {
       console.log(res);
       setPassowrdUpdated(true);
     })
