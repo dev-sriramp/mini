@@ -65,19 +65,28 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="App">
+    <div className="container">
+      <div className="row align-self-center">
+          <div className="mx-auto col-10 mt-5 col-sm-6">
+            <center>
+            
       {!newUser && <form >
-        <h1>Craete Account</h1>
-        <input type="text" name="email" placeholder="email" value={email} onChange={(e) => { emailCheck(e) }} ></input>
+        <h1>Create Account</h1>
+
+
+
+
+
+          <input type="text" name="email" placeholder="email" value={email} onChange={(e) => { emailCheck(e) }} ></input>
         <br />
-        <button type="button" onClick={(e) => { emailChecked(e) }}>Next</button>
+        <button type="button" className="btn btn-success mt-3" onClick={(e) => { emailChecked(e) }}>Next</button>
         <p>{user}</p>
       </form>}
 
 {!newUser &&
         <div>
           <Link to="/login">
-          <button>Already Have an Account</button>
+          <button className="btn btn-info">Already Have an Account</button>
       </Link>
         </div>
 
@@ -93,9 +102,10 @@ const LoginPage = () => {
         </form>
       }
       {images}
-
+    </center>
+</div>
     </div>
-
+</div>
   );
 }
 

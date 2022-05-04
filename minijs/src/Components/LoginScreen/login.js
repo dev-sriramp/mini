@@ -8,7 +8,7 @@ const SignUp = () => {
     const [images, setImages] = useState([]);
     const [selectedImage, setSelectedImage] = useState([]);
     const [emailVerified, setEmailVerified] = useState("");
-    const [emailError, setEmailError] = useState("outline-blue-500");
+    // const [emailError, setEmailError] = useState("outline-blue-500");
     const [showresend, setShowresend] = useState(false);
     const [passwordVerified, setPasswordVerified] = useState(false);
 
@@ -19,9 +19,9 @@ const SignUp = () => {
     const emailCheck = (e) => {
         let email = e.target.value;
         if (validator.isEmail(email)) {
-            setEmailError("outline-green-500");
+            // setEmailError("outline-green-500");
         } else {
-            setEmailError("outline-cyan-500");
+            // setEmailError("outline-cyan-500");
         }
         setEmail(email);
     }
@@ -110,10 +110,10 @@ const SignUp = () => {
                     }>Login</button> : ""
                 }
                     {
-                    !images[0] && <p> {emailVerified}</p>
+                    !images[0] && <p className="mt-2" style={{"color":"red"}}> {emailVerified}</p>
                 }
                     {
-                    !images[0] && showresend && <button type="button"
+                    !images[0] && showresend && <button type="button" className="btn btn-success mt-2"
                         onClick={
                             () => {
                                 resendEmail();
@@ -124,7 +124,7 @@ const SignUp = () => {
                 } </center>
             </form>
             <div className="row"> {
-                images.map((image) => { 
+                images.map((image) => {
                     return (
                         <div className="col-6 col-sm-3">
                             <div className="custom-control custom-checkbox image-checkbox">
@@ -144,7 +144,7 @@ const SignUp = () => {
                                                 "height": "10rem"
                                             }
                                         }
-                                       
+
                                         src={
                                             `http://localhost:${
                                                 process.env.React_App_DBPORT
@@ -157,7 +157,7 @@ const SignUp = () => {
                                 </label>
                             </div>
                         </div>
-                        
+
             )
                 })
             } </div>
@@ -178,7 +178,7 @@ const SignUp = () => {
                     <button className="btn btn-info mt-2">Create An Account</button>
                 </Link>
             </div>
-            
+
         } </center></div></div>
     </div>
 </div>)
