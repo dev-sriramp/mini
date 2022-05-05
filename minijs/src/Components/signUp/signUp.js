@@ -69,7 +69,7 @@ const LoginPage = () => {
       <div className="row align-self-center">
           <div className="mx-auto col-10 mt-5 col-sm-6">
             <center>
-            
+
       {!newUser && <form >
         <h1>Create Account</h1>
 
@@ -94,11 +94,12 @@ const LoginPage = () => {
       {
         newUser && <form  >
           <input
+            
             type="file"
             accept=".png, .jpg, .jpeg"
             onChange={handleImg}
             multiple />
-          <button type="button" value={"Submit"} onClick={() => { update() }}>Submit </button>
+          <button type="button" className="btn btn-success" value={"Submit"} onClick={() => { update() }}>Submit </button>
         </form>
       }
       {images}
