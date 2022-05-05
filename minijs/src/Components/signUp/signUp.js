@@ -28,11 +28,42 @@ const LoginPage = () => {
     }
   }
   const images = ImageInfo.map(image => {
-    return (
+    return (<>
+      <div className="col-6 col-sm-3">
+                            <div className="custom-control custom-checkbox image-checkbox">
+                                <input value={`${image}`} style={{position: 'relative',top: 20,}}type="checkbox"
+                                 onClick={(e) => { imageSelected(e,selectedImage,setSelectedImage) }}
+                                    className="custom-control-input"
+                                    id={
+                                        `${image}`
+                                    }/>
+                                <label className="custom-control-label"
+                                    htmlFor={
+                                        `${image}`
+                                }>
+                                    <img style={
+                                            {
+                                                "width": "10rem",
+                                                "height": "10rem"
+                                            }
+                                        }
+
+                                        src={
+                                            `http://localhost:${
+                                                process.env.React_App_DBPORT
+                                            }/getPassword?image=${image}`
+                                        }
+                                        alt={
+                                            `${image}`
+                                        }
+                                        className="img-fluid"/>
+                                </label>
+                            </div>
+                        </div>
       <div>
         <input value={`${image.alt}`} style={{ position: 'relative',bottom:0, left: 20 }} type={`checkbox`} onClick={(e) => { imageSelected(e,selectedImage,setSelectedImage) }}></input>
         <img style={{ width: 200, height: 200 }} key={image.alt} src={(`${image.src}`)} />
-      </div>
+      </div></>
     )
   })
   const update = async (e) => {
