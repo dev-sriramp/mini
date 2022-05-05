@@ -7,8 +7,8 @@ var storage = new GridFsStorage({
     url:`${connectionString}/${imagePath}`,
     options:{useNewUrlParser:true,useUnifiedTopology:true},
     file:(req,file)=>{
-       
-        const match = ["image/png","image/jpeg"];
+
+        const match = ["image/png","image/jpeg","image/jpg"];
         if(match.indexOf(file.mimetype)!=-1){
             return {
                 bucketName:`${imagePath}`,

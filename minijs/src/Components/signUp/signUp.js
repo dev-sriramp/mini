@@ -10,7 +10,8 @@ const LoginPage = () => {
   const [newUser, setNewUser] = useState(false);
   const [ImageInfo, setImageInfo] = useState([]);
   const [selectedImage, setSelectedImage] = useState([]);
-  const [passwordUpdated,setPassowrdUpdated] = useState(false);
+  const [,setPassowrdUpdated] = useState(false);
+  const [imagelimit,setimagelimit] = useState(false);
 
   const handleImg = async (e) => {
     //console.log(e.target.files);
@@ -31,7 +32,7 @@ const LoginPage = () => {
     return (<>
       <div className="col-6 col-sm-3">
                             <div className="custom-control custom-checkbox image-checkbox">
-                                <input value={`${image}`} style={{position: 'relative',top: 20,}}type="checkbox"
+                                <input  value={`${image.alt}`}  style={{position: 'relative',top: 20,}}type="checkbox"
                                  onClick={(e) => { imageSelected(e,selectedImage,setSelectedImage) }}
                                     className="custom-control-input"
                                     id={
@@ -48,26 +49,28 @@ const LoginPage = () => {
                                             }
                                         }
 
-                                        src={
-                                            `http://localhost:${
-                                                process.env.React_App_DBPORT
-                                            }/getPassword?image=${image}`
-                                        }
-                                        alt={
-                                            `${image}`
-                                        }
+                                       key={image.alt} src={(`${image.src}`)}
+                                       alt={image.alt}
                                         className="img-fluid"/>
                                 </label>
                             </div>
                         </div>
-      <div>
+
+      {/* <div>
         <input value={`${image.alt}`} style={{ position: 'relative',bottom:0, left: 20 }} type={`checkbox`} onClick={(e) => { imageSelected(e,selectedImage,setSelectedImage) }}></input>
         <img style={{ width: 200, height: 200 }} key={image.alt} src={(`${image.src}`)} />
-      </div></>
+      </div> */}
+    </>
     )
   })
   const update = async (e) => {
+    if(ImageInfo.length>9){
+      setimagelimit(true);
+    }
+    else{
+      setimagelimit(false);
     var fileUpload = new FormData();
+
     ImageInfo.map(images => {
       fileUpload.append("file", images.uploadImg)
     })
@@ -77,7 +80,7 @@ const LoginPage = () => {
       console.log(res);
       setPassowrdUpdated(true);
     })
-  }
+  }}
   const emailCheck = (e) => {
     let element = e.target.value;
     setEmail(element);
@@ -91,9 +94,8 @@ const LoginPage = () => {
       setUser("User Email Already Found");
     })
   }
-  const verifyOtp = async (e) =>{
+  
 
-  }
 
   return (
     <div className="container">
@@ -103,11 +105,6 @@ const LoginPage = () => {
 
       {!newUser && <form >
         <h1>Create Account</h1>
-
-
-
-
-
           <input type="text" name="email" placeholder="email" value={email} onChange={(e) => { emailCheck(e) }} ></input>
         <br />
         <button type="button" className="btn btn-success mt-3" onClick={(e) => { emailChecked(e) }}>Next</button>
@@ -120,21 +117,28 @@ const LoginPage = () => {
           <button className="btn btn-info">Already Have an Account</button>
       </Link>
         </div>
-
 }
       {
         newUser && <form  >
           <input
-            
+
             type="file"
             accept=".png, .jpg, .jpeg"
             onChange={handleImg}
             multiple />
-          <button type="button" className="btn btn-success" value={"Submit"} onClick={() => { update() }}>Submit </button>
+          <div>
+{
+  imagelimit && <p>max image limit is 9 images only</p>
+}
+            <button type="button" className="btn btn-success mt-5" value={"Submit"} onClick={() => { update() }}>Submit </button>
+          </div>
         </form>
       }
+      </center>
+        <div className="row">
       {images}
-    </center>
+      </div>
+
 </div>
     </div>
 </div>
