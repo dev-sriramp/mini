@@ -1,4 +1,3 @@
-
 import React,{ useState } from 'react';
 import axios from 'axios';
 import imageSelected from '../util/imageSelected';
@@ -72,7 +71,8 @@ const LoginPage = () => {
     var fileUpload = new FormData();
 
     ImageInfo.map(images => {
-      fileUpload.append("file", images.uploadImg)
+      return(
+      fileUpload.append("file", images.uploadImg))
     })
     fileUpload.append('email', email);
     fileUpload.append('password',selectedImage);
@@ -94,7 +94,7 @@ const LoginPage = () => {
       setUser("User Email Already Found");
     })
   }
-  
+
 
 
   return (
@@ -102,10 +102,11 @@ const LoginPage = () => {
       <div className="row align-self-center">
           <div className="mx-auto col-10 mt-5 col-sm-6">
             <center>
-
+            <h1>Create Account</h1>
+            <input type="text" name="email" placeholder="email" value={email} onChange={(e) => { emailCheck(e) }} ></input>
       {!newUser && <form >
-        <h1>Create Account</h1>
-          <input type="text" name="email" placeholder="email" value={email} onChange={(e) => { emailCheck(e) }} ></input>
+
+
         <br />
         <button type="button" className="btn btn-success mt-3" onClick={(e) => { emailChecked(e) }}>Next</button>
         <p>{user}</p>

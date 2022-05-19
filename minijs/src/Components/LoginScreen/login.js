@@ -1,9 +1,12 @@
 import axios from "axios";
-import React, {useState} from "react";
+import React, {useState,useContext,useEffect} from "react";
 import imageSelected from "../util/imageSelected";
 import validator from 'validator';
 import {Link, Navigate} from "react-router-dom";
+import {userData} from "../../dataProvider";
+
 const SignUp = () => {
+   
     const [email, setEmail] = useState("");
     const [images, setImages] = useState([]);
     const [selectedImage, setSelectedImage] = useState([]);
@@ -11,11 +14,20 @@ const SignUp = () => {
     // const [emailError, setEmailError] = useState("outline-blue-500");
     const [showresend, setShowresend] = useState(false);
     const [passwordVerified, setPasswordVerified] = useState(false);
+    const userDetail = useContext(userData);
+    // if (passwordVerified) {
+    //     return <Navigate to="/welcome" />;
+    // }
 
-    if (passwordVerified) {
+    const {setUserEmail} = useContext(userData);
+
+    useEffect(()=>{
+        console.log(userDetail)
+    },[userDetail])
+
+    if(userDetail.userEmail){
         return <Navigate to="/welcome" />;
     }
-
     const emailCheck = (e) => {
         let email = e.target.value;
         if (validator.isEmail(email)) {
@@ -38,15 +50,20 @@ const SignUp = () => {
         })
     }
     const verifyPassword = async () => {
+        
         await axios.post(`http://localhost:${
             process.env.React_App_DBPORT
         }/verifypassword`, {
             email: email,
             password: selectedImage
-        }).then((e) => {
+        }).then(async (e) => {
             if (e.data.value) {
-                console.log("use navigate");
+
+                console.log(e.data.value);
+                console.log(email);
+                setUserEmail(email);
                 setPasswordVerified(true);
+                console.log(userDetail)
             }
 
         }).catch((e) => {
@@ -57,6 +74,7 @@ const SignUp = () => {
         })
     }
     const emailChecked = async (e) => {
+        console.log(userDetail);
         console.log(process.env.React_App_DBPORT);
         // var data = [];
         await axios.get(`http://localhost:${
